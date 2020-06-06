@@ -18,7 +18,14 @@ suite "base":
     assert not json["sealed"].getBool()
     assert json["t"].getInt() == 1
     assert json["n"].getInt() == 1
-    
+
+  asyncTest "auth":
+    let c = newVaultClient(DEFAULT_VAULT_ADDR, vault.rootToken)
+    let auths = await c.authList()
+    require: "data" in auths
+    # token/ is enabled by default
+    require: "token/" in auths["data"]
+
   asyncTest "secrets":
     let c = newVaultClient(DEFAULT_VAULT_ADDR, vault.rootToken)
     

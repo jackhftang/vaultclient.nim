@@ -103,6 +103,21 @@ proc status*(client: VaultClient): Future[JsonNode] =
   ## Print seal and HA status
   client.read("sys/seal-status")
 
+proc seal*(client: VaultClient): Future[void] {.async.} =
+  ## see https://www.vaultproject.io/api-docs/system/seal#seal
+  yield client.write("sys/seal")
+
+proc unseal*(client: VaultClient, key: string, reset = false, migrate = false): Future[JsonNode] =
+  ## see https://www.vaultproject.io/api-docs/system/unseal#sys-unseal
+  client.write("sys/unseal", %*{
+    "key": key,
+    "reset": reset,
+    "migrate": migrate
+  })
+
+# -------------------------------------------------------------
+# vault secrets <subcommand>
+
 proc secretsList*(client: VaultClient): Future[JsonNode] =
   ## see https://www.vaultproject.io/api-docs/system/mounts#list-mounted-secrets-engines
   client.read("sys/mounts")
@@ -129,15 +144,11 @@ proc secretsTune*(client: VaultClient, path: string, options: JsonNode): Future[
   ## see https://www.vaultproject.io/api-docs/system/mounts#tune-mount-configuration
   client.write("sys/mounts" / path / "tune", options)
 
-proc seal*(client: VaultClient): Future[void] {.async.} =
-  ## see https://www.vaultproject.io/api-docs/system/seal#seal
-  yield client.write("sys/seal")
+# -------------------------------------------------------------
+# vault auth <subcommand>
 
-proc unseal*(client: VaultClient, key: string, reset = false, migrate = false): Future[JsonNode] =
-  ## see https://www.vaultproject.io/api-docs/system/unseal#sys-unseal
-  client.write("sys/unseal", %*{
-    "key": key,
-    "reset": reset,
-    "migrate": migrate
-  })
+proc authList*(client: VaultClient): Future[JsonNode] =
+  ## see https://www.vaultproject.io/api-docs/auth/approle#list-roles
+  client.read("sys/auth")
 
+  
