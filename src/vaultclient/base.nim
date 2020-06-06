@@ -1,12 +1,15 @@
-import httpclient, asyncdispatch, json, uri, os
+import common
+import os
+import httpclient
 
 type
   VaultClientError* = object of CatchableError
 
   VaultClientHttpRequestError* = object of VaultClientError
-    httpMethod*: HttpMethod
-    statusCode*: HttpCode
+    requestMethod*: HttpMethod
     requestUri*: Uri
+    requestBody*: string
+    responseCode*: HttpCode
     responseHeaders*: HttpHeaders
     responseBody*: string
 
@@ -56,9 +59,10 @@ proc req(client: VaultClient, httpMethod: HttpMethod, uri: Uri, headers: HttpHea
   let res = await agent.request($uri, httpMethod, payload, h)
   if not res.code.is2xx:
     var err = newException(VaultClientHttpRequestError, res.status)
-    err.httpMethod = httpMethod
-    err.statusCode = res.code
+    err.requestMethod = httpMethod
     err.requestUri = uri
+    err.requestBody = payload
+    err.responseCode = res.code
     err.responseHeaders = res.headers
     err.responseBody = await res.body
     raise err

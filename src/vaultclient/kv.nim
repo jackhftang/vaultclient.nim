@@ -1,11 +1,12 @@
-import base, json, asyncdispatch, os, httpcore
+import common
+import base, os, httpcore
 
 proc is404(fut: Future[JsonNode]): bool =
   if fut.failed:
     let err = fut.readError
     if err of ref VaultClientHttpRequestError:
       let e = cast[ref VaultClientHttpRequestError](err)
-      if e.statusCode == Http404:
+      if e.responseCode == Http404:
         return true
     raise err
 
@@ -70,12 +71,5 @@ proc list*(kv: VaultKV, path: string): Future[seq[string]] {.async.} =
   for key in fut.read["data"]["keys"]:
     result.add key.getStr()
     
-proc loginAppRole*(client: VaultClient, roleId, secretId: string): Future[void] {.async.} =
-  ## Login with approle auth engine. Auto set token. 
-  let res = await client.write("auth/approle/login", %*{
-    "role_id": roleId,
-    "secret_id": secretId
-  })
-  let token = res["auth"]["client_token"].getStr()
-  client.token = token
+
 
