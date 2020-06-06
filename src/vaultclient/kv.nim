@@ -10,10 +10,6 @@ proc is404(fut: Future[JsonNode]): bool =
         return true
     raise err
 
-proc except404(fut: Future[JsonNode]) {.inline.} = 
-  # raise if not 404
-  discard is404(fut)
-
 type
   VaultKV* = ref object
     client: VaultClient
@@ -36,30 +32,33 @@ proc disable*(kv: VaultKV): Future[void] =
   kv.client.secretsDisable(kv.path)
 
 proc conf*(kv: VaultKV): Future[JsonNode] =
+  ## see https://www.vaultproject.io/api-docs/secret/kv/kv-v2#read-kv-engine-configuration
   kv.client.read(kv.path / "config")
 
-proc put*(kv: VaultKV, key: string, val: JsonNode): Future[void] {.async.} =
+proc conf*(kv: VaultKV, conf: JsonNode): Future[void] =
+  ## see https://www.vaultproject.io/api-docs/secret/kv/kv-v2#configure-the-kv-engine
+  kv.client.write(kv.path / "config", conf).ignore()
+
+proc put*(kv: VaultKV, key: string, val: JsonNode): Future[void] =
   ## see https://www.vaultproject.io/api-docs/secret/kv/kv-v2#create-update-secret
-  let fut = kv.client.write(kv.path / "data" / key, %*{
+  kv.client.write(kv.path / "data" / key, %*{
     "data": val
-  })
-  yield fut
-  except404(fut)
+  }).ignore()
 
 proc get*(kv: VaultKV, key: string): Future[JsonNode] {.async.} =
   ## see https://www.vaultproject.io/api-docs/secret/kv/kv-v2#read-secret-version
   let res = await kv.client.read(kv.path / "data" / key )
   result = res["data"]["data"]
 
-proc delete*(kv: VaultKV, key: string): Future[void] {.async.} =
+proc delete*(kv: VaultKV, key: string): Future[void] =
   ## Delete latest version of secret.
   ## see https://www.vaultproject.io/api-docs/secret/kv/kv-v2#delete-latest-version-of-secret
-  yield kv.client.delete(kv.path / "data" / key)
+  kv.client.delete(kv.path / "data" / key).ignore()
 
-proc destroy*(kv: VaultKV, key: string): Future[void] {.async.} =
+proc destroy*(kv: VaultKV, key: string): Future[void] =
   ## Delete metadata and all versions.
   ## see https://www.vaultproject.io/api-docs/secret/kv/kv-v2#destroy-secret-versions
-  yield kv.client.delete(kv.path / "metadata" / key)
+  kv.client.delete(kv.path / "metadata" / key).ignore()
 
 proc list*(kv: VaultKV, path: string): Future[seq[string]] {.async.} =
   ## List keys at path. Return @[] if not keys.

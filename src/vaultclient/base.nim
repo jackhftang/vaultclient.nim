@@ -103,9 +103,9 @@ proc status*(client: VaultClient): Future[JsonNode] =
   ## Print seal and HA status
   client.read("sys/seal-status")
 
-proc seal*(client: VaultClient): Future[void] {.async.} =
+proc seal*(client: VaultClient): Future[void] =
   ## see https://www.vaultproject.io/api-docs/system/seal#seal
-  yield client.write("sys/seal")
+  client.write("sys/seal").ignore()
 
 proc unseal*(client: VaultClient, key: string, reset = false, migrate = false): Future[JsonNode] =
   ## see https://www.vaultproject.io/api-docs/system/unseal#sys-unseal
@@ -122,7 +122,7 @@ proc secretsList*(client: VaultClient): Future[JsonNode] =
   ## see https://www.vaultproject.io/api-docs/system/mounts#list-mounted-secrets-engines
   client.read("sys/mounts")
 
-proc secretsEnable*(client: VaultClient, path, engine: string, options: JsonNode = nil): Future[void] {.async.} =
+proc secretsEnable*(client: VaultClient, path, engine: string, options: JsonNode = nil): Future[void] =
   ## see https://www.vaultproject.io/api-docs/system/mounts#enable-secrets-engine
   var payload = %*{
     "type": engine
@@ -131,15 +131,12 @@ proc secretsEnable*(client: VaultClient, path, engine: string, options: JsonNode
     for k, v in options:
       payload[k] = v
   # ignore any error
-  let fut = client.write("sys/mounts" / path, payload)
-  yield fut
-  if fut.failed:
-    raise fut.readError
-
-proc secretsDisable*(client: VaultClient, path: string): Future[void] {.async.} =
+  client.write("sys/mounts" / path, payload).ignore()
+  
+proc secretsDisable*(client: VaultClient, path: string): Future[void] =
   ## see https://www.vaultproject.io/api-docs/system/mounts#disable-secrets-engine
-  yield client.delete("sys/mounts" / path)
-
+  client.delete("sys/mounts" / path).ignore()
+  
 proc secretsTune*(client: VaultClient, path: string, options: JsonNode): Future[JsonNode] =
   ## see https://www.vaultproject.io/api-docs/system/mounts#tune-mount-configuration
   client.write("sys/mounts" / path / "tune", options)
@@ -151,4 +148,20 @@ proc authList*(client: VaultClient): Future[JsonNode] =
   ## see https://www.vaultproject.io/api-docs/auth/approle#list-roles
   client.read("sys/auth")
 
-  
+proc authEnable*(client: VaultClient, path, authEngine: string, options: JsonNode): Future[void] = 
+  ## see https://www.vaultproject.io/api-docs/system/auth#enable-auth-method
+  var opt = if options.isNil: newJObject() else: options
+  opt["type"] = %authEngine
+  client.write("sys/auth" / path, opt).ignore()
+
+proc authDisable*(client: VaultClient, path: string): Future[void] = 
+  ## see https://www.vaultproject.io/api-docs/system/auth#disable-auth-method
+  client.delete("sys/auth" / path).ignore()
+
+proc authTune*(client: VaultClient, path: string): Future[JsonNode] = 
+  ## see https://www.vaultproject.io/api-docs/system/auth#read-auth-method-tuning
+  client.read("sys/auth" / path / "tune")
+
+proc authTune*(client: VaultClient, path: string, options: JsonNode): Future[void] =
+  ## see https://www.vaultproject.io/api-docs/system/auth#tune-auth-method
+  discard
