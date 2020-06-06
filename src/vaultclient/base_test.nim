@@ -21,10 +21,28 @@ suite "base":
 
   asyncTest "auth":
     let c = newVaultClient(DEFAULT_VAULT_ADDR, vault.rootToken)
-    let auths = await c.authList()
+
+    let auths = await c.listAuths()
     require: "data" in auths
+    
     # token/ is enabled by default
     require: "token/" in auths["data"]
+    
+    
+    # read is same as list
+    var conf = await c.getAuthConfig("token/")
+    let defaultLeaseTTL = conf["default_lease_ttl"].getInt()
+    let maxLeaseTTL = conf["max_lease_ttl"].getInt()
+
+    # update auth config
+    await c.putAuthConfig("token/", %*{
+      "default_lease_ttl": defaultLeaseTTL div 2,
+      "max_lease_ttl": maxLeaseTTL div 2,
+    })
+    conf = await c.getAuthConfig("token/")
+    require: conf["default_lease_ttl"].getInt() == defaultLeaseTTL div 2
+    require: conf["max_lease_ttl"].getInt() == maxLeaseTTL div 2
+
 
   asyncTest "secrets":
     let c = newVaultClient(DEFAULT_VAULT_ADDR, vault.rootToken)

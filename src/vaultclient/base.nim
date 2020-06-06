@@ -150,24 +150,24 @@ proc tuneSecret*(client: VaultClient, path: string, options: JsonNode): Future[J
 # -------------------------------------------------------------
 # vault auth <subcommand>
 
-proc authList*(client: VaultClient): Future[JsonNode] =
+proc listAuths*(client: VaultClient): Future[JsonNode] =
   ## see https://www.vaultproject.io/api-docs/auth/approle#list-roles
   client.read("sys/auth")
 
-proc authEnable*(client: VaultClient, path, authEngine: string, options: JsonNode): Future[void] = 
+proc enableAuth*(client: VaultClient, path, authEngine: string, options: JsonNode): Future[void] = 
   ## see https://www.vaultproject.io/api-docs/system/auth#enable-auth-method
   var opt = if options.isNil: newJObject() else: options
   opt["type"] = %authEngine
   client.write("sys/auth" / path, opt).ignore()
 
-proc authDisable*(client: VaultClient, path: string): Future[void] = 
+proc disableAuth*(client: VaultClient, path: string): Future[void] = 
   ## see https://www.vaultproject.io/api-docs/system/auth#disable-auth-method
   client.delete("sys/auth" / path).ignore()
 
-proc authTune*(client: VaultClient, path: string): Future[JsonNode] = 
+proc getAuthConfig*(client: VaultClient, path: string): Future[JsonNode] = 
   ## see https://www.vaultproject.io/api-docs/system/auth#read-auth-method-tuning
   client.read("sys/auth" / path / "tune")
 
-proc authTune*(client: VaultClient, path: string, options: JsonNode): Future[void] =
+proc putAuthConfig*(client: VaultClient, path: string, options: JsonNode): Future[void] =
   ## see https://www.vaultproject.io/api-docs/system/auth#tune-auth-method
   client.write("sys/auth" / path / "tune", options).ignore()
