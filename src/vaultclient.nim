@@ -1,2 +1,2 @@
-import vaultclient/[base, kv]
-export base, kv
+import vaultclient/[approle, base, entity, kv]
+export approle, base, entity, kv

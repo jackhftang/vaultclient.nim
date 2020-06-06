@@ -2,7 +2,7 @@
 
 version       = "0.1.0"
 author        = "Jack Tang"
-description   = "vaultclient"
+description   = "Hashicorp Vault HTTP Client"
 license       = "MIT"
 backend       = "c"
 srcDir        = "src"

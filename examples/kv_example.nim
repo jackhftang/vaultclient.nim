@@ -1,14 +1,3 @@
-# vaultclient 
-
-Hashicorp Vault HTTP Client
-
-## Overview
-
-The fundamental four operations of Vault `write`, `read`, `list` and `delete` are provided. Most if not all other high level operations can be built upon these four operations. In particular, high level binding of `kv2` secret engine is available. 
-
-## Usage
-
-```nim
 import vaultclient, asyncdispatch, json, strformat
 
 proc main() {.async.} =
@@ -46,7 +35,4 @@ proc main() {.async.} =
 
 when isMainModule:
   waitFor main()
-```
-
-
-
+  
