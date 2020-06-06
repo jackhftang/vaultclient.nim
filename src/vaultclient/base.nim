@@ -164,4 +164,4 @@ proc authTune*(client: VaultClient, path: string): Future[JsonNode] =
 
 proc authTune*(client: VaultClient, path: string, options: JsonNode): Future[void] =
   ## see https://www.vaultproject.io/api-docs/system/auth#tune-auth-method
-  discard
+  client.write("sys/auth" / path / "tune", options).ignore()

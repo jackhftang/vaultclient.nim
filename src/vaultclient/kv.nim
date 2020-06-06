@@ -45,11 +45,6 @@ proc put*(kv: VaultKV, key: string, val: JsonNode): Future[void] =
     "data": val
   }).ignore()
 
-proc get*(kv: VaultKV, key: string): Future[JsonNode] {.async.} =
-  ## see https://www.vaultproject.io/api-docs/secret/kv/kv-v2#read-secret-version
-  let res = await kv.client.read(kv.path / "data" / key )
-  result = res["data"]["data"]
-
 proc delete*(kv: VaultKV, key: string): Future[void] =
   ## Delete latest version of secret.
   ## see https://www.vaultproject.io/api-docs/secret/kv/kv-v2#delete-latest-version-of-secret
@@ -60,8 +55,17 @@ proc destroy*(kv: VaultKV, key: string): Future[void] =
   ## see https://www.vaultproject.io/api-docs/secret/kv/kv-v2#destroy-secret-versions
   kv.client.delete(kv.path / "metadata" / key).ignore()
 
+proc get*(kv: VaultKV, key: string): Future[JsonNode] {.async.} =
+  ## Get value by key. Return nil if key not found.
+  ## see https://www.vaultproject.io/api-docs/secret/kv/kv-v2#read-secret-version
+  let fut = kv.client.read(kv.path / "data" / key )
+  yield fut
+  if is404(fut): return
+
+  result = fut.read["data"]["data"]
+
 proc list*(kv: VaultKV, path: string): Future[seq[string]] {.async.} =
-  ## List keys at path. Return @[] if not keys.
+  ## List keys at path. Return @[] if directory not found.
   ## see https://www.vaultproject.io/api-docs/secret/kv/kv-v2#list-secrets
   let fut = kv.client.list(kv.path / "metadata" / path)
   yield fut
