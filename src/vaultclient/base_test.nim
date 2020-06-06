@@ -30,22 +30,22 @@ suite "base":
     let c = newVaultClient(DEFAULT_VAULT_ADDR, vault.rootToken)
     
     # precondition
-    var lis =  await c.secretsList()
+    var lis =  await c.listSecrets()
     assert "mypath/" notin lis["data"]
 
     # enable 
-    await c.secretsEnable("mypath", "kv")
+    await c.enableSecret("mypath", "kv")
 
     # check
-    lis =  await c.secretsList()
+    lis =  await c.listSecrets()
     assert "mypath/" in lis["data"]
     assert lis["data"]["mypath/"]["type"].getStr() == "kv"
 
     # disable
-    await c.secretsDisable("mypath")
+    await c.disableSecret("mypath")
 
     # check 
-    lis =  await c.secretsList()
+    lis =  await c.listSecrets()
     assert "mypath/" notin lis["data"]
 
   asyncTest "unseal and seal":

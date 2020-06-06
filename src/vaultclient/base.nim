@@ -124,11 +124,11 @@ proc unseal*(client: VaultClient, key: string, reset = false, migrate = false): 
 # -------------------------------------------------------------
 # vault secrets <subcommand>
 
-proc secretsList*(client: VaultClient): Future[JsonNode] =
+proc listSecrets*(client: VaultClient): Future[JsonNode] =
   ## see https://www.vaultproject.io/api-docs/system/mounts#list-mounted-secrets-engines
   client.read("sys/mounts")
 
-proc secretsEnable*(client: VaultClient, path, engine: string, options: JsonNode = nil): Future[void] =
+proc enableSecret*(client: VaultClient, path, engine: string, options: JsonNode = nil): Future[void] =
   ## see https://www.vaultproject.io/api-docs/system/mounts#enable-secrets-engine
   var payload = %*{
     "type": engine
@@ -139,11 +139,11 @@ proc secretsEnable*(client: VaultClient, path, engine: string, options: JsonNode
   # ignore any error
   client.write("sys/mounts" / path, payload).ignore()
   
-proc secretsDisable*(client: VaultClient, path: string): Future[void] =
+proc disableSecret*(client: VaultClient, path: string): Future[void] =
   ## see https://www.vaultproject.io/api-docs/system/mounts#disable-secrets-engine
   client.delete("sys/mounts" / path).ignore()
   
-proc secretsTune*(client: VaultClient, path: string, options: JsonNode): Future[JsonNode] =
+proc tuneSecret*(client: VaultClient, path: string, options: JsonNode): Future[JsonNode] =
   ## see https://www.vaultproject.io/api-docs/system/mounts#tune-mount-configuration
   client.write("sys/mounts" / path / "tune", options)
 

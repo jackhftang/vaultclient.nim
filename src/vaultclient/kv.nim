@@ -26,10 +26,10 @@ proc enable*(kv: VaultKV, options: JsonNode = nil): Future[void] =
   var opts = if options.isNil: newJObject() else: options
   opts["options"] = if "options" in opts: opts["options"] else: newJObject()
   opts["options"]["version"] = %"2"
-  kv.client.secretsEnable(kv.path, "kv", opts)
+  kv.client.enableSecret(kv.path, "kv", opts)
 
 proc disable*(kv: VaultKV): Future[void] =
-  kv.client.secretsDisable(kv.path)
+  kv.client.disableSecret(kv.path)
 
 proc conf*(kv: VaultKV): Future[JsonNode] =
   ## see https://www.vaultproject.io/api-docs/secret/kv/kv-v2#read-kv-engine-configuration
