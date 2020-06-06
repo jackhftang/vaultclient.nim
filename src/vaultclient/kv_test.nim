@@ -21,6 +21,12 @@ suite "kv":
     check: "cas_required" in conf["data"]
     check: "max_versions" in conf["data"]
 
+  asyncTest "enable multiple times":
+    let c = newVaultClient(DEFAULT_VAULT_ADDR, vault.rootToken)
+    let kv = c.kv("multi")
+    await kv.enable()
+    await kv.enable()
+
   asyncTest "default secret/":
     let c = newVaultClient(DEFAULT_VAULT_ADDR, vault.rootToken)
     let kv = c.kv()

@@ -21,12 +21,31 @@ proc kv*(client: VaultClient, mountPoint: string = "/secret"): VaultKV =
     path: mountPoint
   )
 
-proc enable*(kv: VaultKV, options: JsonNode = nil): Future[void] =
+proc enable*(kv: VaultKV, options: JsonNode = nil): Future[void] {.async.} =
   ## NOTE: only version 2 is supported. 
   var opts = if options.isNil: newJObject() else: options
   opts["options"] = if "options" in opts: opts["options"] else: newJObject()
   opts["options"]["version"] = %"2"
-  kv.client.enableSecret(kv.path, "kv", opts)
+  let fut = kv.client.enableSecret(kv.path, "kv", opts)
+  yield fut
+  if not fut.failed: return
+  let err = fut.readError()
+  if err of ref VaultClientHttpRequestError:
+    let verr = cast[ref VaultClientHttpRequestError](err)
+    if verr.responseCode == Http400:
+      let j = 
+        try: parseJson(verr.responseBody)
+        except: raise err
+      if "errors" in j:
+        let errs = j["errors"]
+        if errs.len == 1 and errs[0].getStr().startsWith("path is already in use at"):
+          # ignore if already enabled
+          return
+    raise err
+  else:
+    raise err
+
+  
 
 proc disable*(kv: VaultKV): Future[void] =
   kv.client.disableSecret(kv.path)
@@ -41,6 +60,7 @@ proc conf*(kv: VaultKV, conf: JsonNode): Future[void] =
 
 proc put*(kv: VaultKV, key: string, val: JsonNode): Future[void] =
   ## see https://www.vaultproject.io/api-docs/secret/kv/kv-v2#create-update-secret
+  assert val.kind == JObject
   kv.client.write(kv.path / "data" / key, %*{
     "data": val
   }).ignore()
@@ -56,20 +76,29 @@ proc destroy*(kv: VaultKV, key: string): Future[void] =
   kv.client.delete(kv.path / "metadata" / key).ignore()
 
 proc get*(kv: VaultKV, key: string): Future[JsonNode] {.async.} =
-  ## Get value by key. Return nil if key not found.
+  ## Get value by key. raise VaultClientHttpRequestError if key not found.
+  ## see https://www.vaultproject.io/api-docs/secret/kv/kv-v2#read-secret-version
+  let json = await kv.client.read(kv.path / "data" / key )
+  result = json["data"]["data"]
+
+proc get*(kv: VaultKV, key: string, default: JsonNode): Future[JsonNode] {.async.} =
+  ## Get value by key. Return default if key not found.
   ## see https://www.vaultproject.io/api-docs/secret/kv/kv-v2#read-secret-version
   let fut = kv.client.read(kv.path / "data" / key )
   yield fut
-  if is404(fut): return
+  if is404(fut): 
+      result = default
+  else:
+    result = fut.read["data"]["data"]
 
-  result = fut.read["data"]["data"]
 
-proc list*(kv: VaultKV, path: string): Future[seq[string]] {.async.} =
+proc list*(kv: VaultKV, path: string = "/"): Future[seq[string]] {.async.} =
   ## List keys at path. Return @[] if directory not found.
   ## see https://www.vaultproject.io/api-docs/secret/kv/kv-v2#list-secrets
   let fut = kv.client.list(kv.path / "metadata" / path)
   yield fut
-  if is404(fut): return
+  if is404(fut): 
+    return
 
   for key in fut.read["data"]["keys"]:
     result.add key.getStr()
