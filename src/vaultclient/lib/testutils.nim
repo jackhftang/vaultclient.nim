@@ -21,7 +21,7 @@ macro asyncTest*(name: static[string], code: untyped): untyped =
 type
   VaultProcess* = ref object
     process: Process
-    unsealKey*: string
+    unsealKey*: string # -dev has only one unseal key
     rootToken*: string
 
 proc newVaultProcess*(): VaultProcess =

@@ -41,6 +41,19 @@ suite "base":
     lis =  await c.secretsList()
     assert "mypath/" notin lis["data"]
 
+  asyncTest "unseal and seal":
+    let c = newVaultClient(DEFAULT_VAULT_ADDR, vault.rootToken)
+
+    let s1 = await c.status()
+    require: not s1["sealed"].getBool()
+
+    await c.seal()
+
+    let s2 = await c.status()
+    require: s2["sealed"].getBool()
+
+    let s3 = await c.unseal(vault.unsealKey)
+    require: not s3["sealed"].getBool() 
 
 
   # asyncTest "status":

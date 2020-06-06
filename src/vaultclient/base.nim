@@ -42,6 +42,9 @@ proc newVaultClient*(): VaultClient =
   let token = getEnv("VAULT_TOKEN", "")
   newVaultClient(host, token)
 
+# -------------------------------------------------------------
+# read, list, write and delete
+
 proc req(client: VaultClient, httpMethod: HttpMethod, uri: Uri, headers: HttpHeaders = nil, data: JsonNode = nil): Future[JsonNode] {.async.} =
   let h = if headers.isNil: newHttpHeaders() else: headers
   # required. Otherwise if response payload is empty, httpclient hang
@@ -93,6 +96,9 @@ proc delete*(client: VaultClient, path: string): Future[JsonNode] =
   let uri = client.host / path
   client.req(HttpDelete, uri)
 
+# -------------------------------------------------------------
+# /sys
+
 proc status*(client: VaultClient): Future[JsonNode] =
   ## Print seal and HA status
   client.read("sys/seal-status")
@@ -122,3 +128,16 @@ proc secretsDisable*(client: VaultClient, path: string): Future[void] {.async.} 
 proc secretsTune*(client: VaultClient, path: string, options: JsonNode): Future[JsonNode] =
   ## see https://www.vaultproject.io/api-docs/system/mounts#tune-mount-configuration
   client.write("sys/mounts" / path / "tune", options)
+
+proc seal*(client: VaultClient): Future[void] {.async.} =
+  ## see https://www.vaultproject.io/api-docs/system/seal#seal
+  yield client.write("sys/seal")
+
+proc unseal*(client: VaultClient, key: string, reset = false, migrate = false): Future[JsonNode] =
+  ## see https://www.vaultproject.io/api-docs/system/unseal#sys-unseal
+  client.write("sys/unseal", %*{
+    "key": key,
+    "reset": reset,
+    "migrate": migrate
+  })
+
