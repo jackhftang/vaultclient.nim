@@ -82,16 +82,29 @@ suite "kv":
     keys = await kv.list("foo")
     require: keys.len == 0
 
-  asyncTest "return nil if key does not exist":
+  asyncTest "raise if key does not exist":
     let path = "some/path/that/is/not/yet/exists"
     let data = %*{"a": 1}
     
     let c = newVaultClient(DEFAULT_VAULT_ADDR, vault.rootToken)
     let kv = c.kv()
 
-    let v0 = await kv.get(path)
-    require: v0.isNil
+    # raise if not found 
+    let fut0 = kv.get(path)
+    yield fut0
+    require: fut0.failed
+
+    # return default if supplied
+    let fut1 = kv.get(path, data)
+    yield fut1
+    require: fut1.read() == data
+
+    # return value if found
     await kv.put(path, data)
     let v1 = await kv.get(path)
     require: v1 == data
+
+  
+
+
     
