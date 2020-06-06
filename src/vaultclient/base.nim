@@ -8,6 +8,7 @@ type
   VaultClientHttpRequestError* = object of VaultClientError
     requestMethod*: HttpMethod
     requestUri*: Uri
+    requestHeaders*: HttpHeaders
     requestBody*: string
     responseCode*: HttpCode
     responseHeaders*: HttpHeaders
@@ -60,10 +61,15 @@ proc req(client: VaultClient, httpMethod: HttpMethod, uri: Uri, headers: HttpHea
 
   let agent = newAsyncHttpClient()
   let res = await agent.request($uri, httpMethod, payload, h)
+
+  when defined(debugVaultClient):
+    echo res.code, await res.body
+
   if not res.code.is2xx:
     var err = newException(VaultClientHttpRequestError, res.status)
     err.requestMethod = httpMethod
     err.requestUri = uri
+    err.requestHeaders = h
     err.requestBody = payload
     err.responseCode = res.code
     err.responseHeaders = res.headers

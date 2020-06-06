@@ -9,3 +9,5 @@ proc ignore*(fut: Future[JsonNode]): Future[void] {.async.} =
   yield fut
   if fut.failed:
     raise fut.readError()
+
+template isNotNil*(x: typed): bool = not x.isNil
