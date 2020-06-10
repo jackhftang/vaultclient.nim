@@ -1,0 +1,17 @@
+## see https://www.vaultproject.io/api-docs/auth/token#list-accessors
+## see https://www.vaultproject.io/api-docs/auth/token#create-token
+## see https://www.vaultproject.io/api-docs/auth/token#lookup-a-token
+## see https://www.vaultproject.io/api-docs/auth/token#lookup-a-token-self
+## see https://www.vaultproject.io/api-docs/auth/token#lookup-a-token-accessor
+## see https://www.vaultproject.io/api-docs/auth/token#renew-a-token
+## see https://www.vaultproject.io/api-docs/auth/token#renew-a-token-self
+## see https://www.vaultproject.io/api-docs/auth/token#renew-a-token-accessor
+## see https://www.vaultproject.io/api-docs/auth/token#revoke-a-token
+## see https://www.vaultproject.io/api-docs/auth/token#revoke-a-token-self
+## see https://www.vaultproject.io/api-docs/auth/token#revoke-a-token-accessor
+## see https://www.vaultproject.io/api-docs/auth/token#revoke-token-and-orphan-children
+## see https://www.vaultproject.io/api-docs/auth/token#read-token-role
+## see https://www.vaultproject.io/api-docs/auth/token#list-token-roles
+## see https://www.vaultproject.io/api-docs/auth/token#create-update-token-role
+## see https://www.vaultproject.io/api-docs/auth/token#delete-token-role
+## see https://www.vaultproject.io/api-docs/auth/token#tidy-tokens

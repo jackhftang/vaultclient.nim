@@ -1,4 +1,4 @@
-import common, base, asyncdispatch
+import lib/common, base, asyncdispatch
 
 ## see https://www.vaultproject.io/api-docs/auth/approle#list-roles
 ## see https://www.vaultproject.io/api-docs/auth/approle#create-update-approle

@@ -1,5 +1,4 @@
-import testutils
-import common
+import lib/[common, testutils]
 import algorithm
 import base, entity
 

@@ -1,5 +1,5 @@
-import testutils
-import common
+import lib/testutils
+import lib/common
 import base
 
 suite "base":

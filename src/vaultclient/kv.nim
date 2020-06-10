@@ -1,4 +1,4 @@
-import common
+import lib/common
 import base, os, httpcore
 
 proc is404(fut: Future[JsonNode]): bool =

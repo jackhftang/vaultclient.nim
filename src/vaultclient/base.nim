@@ -1,4 +1,4 @@
-import common
+import lib/common
 import os
 import httpclient
 

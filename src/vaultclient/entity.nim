@@ -1,4 +1,5 @@
-import common, base
+import lib/common
+import base
 
 proc takeData(fut: Future[JsonNode]): Future[JsonNode] {.async.} =
   yield fut
